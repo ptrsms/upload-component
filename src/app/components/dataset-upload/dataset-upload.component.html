@@ -1,0 +1,19 @@
+<section class="dataset-upload" [ngClass]="{'drag-over': dragOver}">
+  <div class="container" *ngIf="!uploadData || uploadData.length === 0; else dataBlock">
+    <input class="title-paste" placeholder="Paste your dataset here" [(ngModel)]="dataInput" (change)="parseDataset()">
+<!--    <p><span class="title-paste">Paste your dataset here</span></p>-->
+    <span class="upload-invalid" *ngIf="uploadDataInvalid">Invalid data inserted. Please use only numbers</span>
+    <div class="drop-target">
+          <div>OR</div>
+      <span>drag & drop file</span>
+      <div class="csv-icon">
+        <svg height='80px' width='50px'  fill="#A2A2A2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 125" version="1.1" x="0px" y="0px"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M96,125 L4,125 C1.790861,125 0,123.209139 0,121 L0,4 C0,1.790861 1.790861,0 4,0 L72.375,0 L72.375,22.785 C72.375,25.4580582 74.5419418,27.625 77.215,27.625 L100,27.625 L100,121 C100,123.209139 98.209139,125 96,125 Z M28.484,81.396 C32.939,81.396 35.579,79.812 37.955,77.271 L34.721,74.004 C32.906,75.654 31.289,76.71 28.649,76.71 C24.689,76.71 21.95,73.41 21.95,69.45 L21.95,69.384 C21.95,65.424 24.755,62.19 28.649,62.19 C30.959,62.19 32.774,63.18 34.556,64.797 L37.79,61.068 C35.645,58.956 33.038,57.504 28.682,57.504 C21.587,57.504 16.637,62.883 16.637,69.45 L16.637,69.516 C16.637,76.149 21.686,81.396 28.484,81.396 Z M50.231,81.33 C55.214,81.33 58.712,78.756 58.712,74.169 L58.712,74.103 C58.712,70.077 56.072,68.394 51.386,67.173 C47.393,66.15 46.403,65.655 46.403,64.137 L46.403,64.071 C46.403,62.949 47.426,62.058 49.373,62.058 C51.32,62.058 53.333,62.916 55.379,64.335 L58.019,60.507 C55.676,58.626 52.805,57.57 49.439,57.57 C44.72,57.57 41.354,60.342 41.354,64.533 L41.354,64.599 C41.354,69.186 44.357,70.473 49.01,71.661 C52.871,72.651 53.663,73.311 53.663,74.598 L53.663,74.664 C53.663,76.017 52.409,76.842 50.33,76.842 C47.69,76.842 45.512,75.753 43.433,74.037 L40.43,77.634 C43.202,80.109 46.733,81.33 50.231,81.33 Z M70.493,81.165 L74.981,81.165 L84.32,57.9 L78.842,57.9 L72.803,74.169 L66.764,57.9 L61.154,57.9 L70.493,81.165 Z M75,21 L75,0 L100,25 L79,25 C76.790861,25 75,23.209139 75,21 Z" fill="#A2A2A2" fill-rule="nonzero"></path></g></svg>
+    </div>
+    </div>
+  </div>
+  <ng-template #dataBlock>
+    <div class="data-line" *ngFor="let dataLine of uploadData; let i=index">
+      {{dataLine}}
+    </div>
+  </ng-template>
+</section>

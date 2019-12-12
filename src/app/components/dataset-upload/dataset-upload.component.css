@@ -1,0 +1,52 @@
+.dataset-upload {
+  padding: 1rem;
+  height: 85vh;
+  overflow: hidden;
+  overflow-y: auto;
+  border: 1px solid #e2e2e2;
+  border-radius: 3px;
+  color: gray;
+  font-size: smaller;
+}
+
+.container {
+  height: 80%;
+}
+
+.upload-invalid {
+  display: block;
+  color: darkred;
+  font-size: small;
+}
+
+.data-line {
+  padding: .2rem;
+
+}
+
+.title-paste {
+  font-size: smaller;
+  border: none;
+  border-left: 1px solid #252525;
+  outline: none !important;
+  padding-left: .3rem;
+  height: 1.3rem;
+}
+
+.drag-over {
+  border: 3px dashed gray;
+}
+
+.drop-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.csv-icon {
+  margin-top: .5rem;
+  opacity: .7;
+}
+

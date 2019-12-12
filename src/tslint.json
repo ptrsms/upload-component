@@ -10,7 +10,7 @@
         "component-selector": [
             true,
             "element",
-            "app",
+            "eyes",
             "kebab-case"
         ]
     }
