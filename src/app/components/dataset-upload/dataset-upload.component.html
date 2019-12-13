@@ -1,8 +1,8 @@
 <section class="dataset-upload" [ngClass]="{'drag-over': dragOver}">
   <div class="container" *ngIf="!uploadData || uploadData.length === 0; else dataBlock">
-    <input class="title-paste" placeholder="Paste your dataset here" [(ngModel)]="dataInput" (change)="parseDataset()">
+    <input class="title-paste" placeholder="Paste your dataset here" (paste)="parseDataset($event)">
 <!--    <p><span class="title-paste">Paste your dataset here</span></p>-->
-    <span class="upload-invalid" *ngIf="uploadDataInvalid">Invalid data inserted. Please use only numbers</span>
+    <span class="upload-invalid" *ngIf="uploadDataInvalid">Invalid data inserted. Please use only dot separated numbers</span>
     <div class="drop-target">
           <div>OR</div>
       <span>drag & drop file</span>
@@ -12,8 +12,14 @@
     </div>
   </div>
   <ng-template #dataBlock>
-    <div class="data-line" *ngFor="let dataLine of uploadData; let i=index">
-      {{dataLine}}
-    </div>
+    <ul>
+    <li class="data-line" *ngFor="let dataLine of uploadData; let i=index">
+      <span class="timestamp">
+        <span>{{dataLine.hour}}</span>
+        <span>{{dataLine.period}}</span>
+      </span>
+      <span class="data-value">{{dataLine.value}} </span>
+    </li>
+    </ul>
   </ng-template>
 </section>

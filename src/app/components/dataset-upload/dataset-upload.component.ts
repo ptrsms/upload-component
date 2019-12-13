@@ -1,4 +1,4 @@
-import {Component, EventEmitter, HostBinding, HostListener, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, HostListener, OnInit, Output} from '@angular/core';
 
 @Component({
   selector: 'eyes-dataset-upload',
@@ -7,12 +7,12 @@ import {Component, EventEmitter, HostBinding, HostListener, OnInit, Output} from
 })
 export class DatasetUploadComponent implements OnInit {
 
-  uploadData: string[];
+  uploadData: any[];
   dragOver = false;
   uploadDataInvalid = false;
-  dataInput: string;
 
-  @Output() uploadFiles = new EventEmitter<FileList>();
+  @Output() fileUpload = new EventEmitter<FileList>();
+  @Output() dataUpload = new EventEmitter<string>();
 
   @HostListener('dragover', ['$event']) onDragOver(evt) {
     evt.preventDefault();
@@ -32,18 +32,47 @@ export class DatasetUploadComponent implements OnInit {
     evt.preventDefault();
     evt.stopPropagation();
     this.dragOver = false;
-    const files: FileList = evt.dataTransfer.files;
-    if (files.length > 0) {
-      this.uploadFiles.emit(files);
+    const files = evt.dataTransfer.files;
+    if (files && files.length && this.areFilesValid(files)) {
+      // this.fileUpload.emit(files);
     }
   }
 
-  parseDataset() {
+  private areFilesValid(files) {
+    const fileReader = new FileReader();
+    fileReader.readAsText(files[0]);
+    const self = this;
+    fileReader.onload = function () {
+      const dataset = fileReader.result;
+      self.parseDataset(dataset);
+    };
+  }
+
+  onPaste(event) {
+    // @ts-ignore
+    const clipboardData = event.clipboardData || window.clipboardData;
+    const dataInput = clipboardData.getData('text');
+    this.parseDataset(dataInput);
+  }
+
+  parseDataset(dataInput) {
+
     this.uploadData = undefined;
-    const entries = this.dataInput.split(' ');
+
+    const entries = dataInput.split('\n');
     if (entries.every(entry => !isNaN(parseFloat(entry)))) {
       this.uploadDataInvalid = false;
-      this.uploadData = entries;
+      this.dataUpload.emit(dataInput);
+      let hour = 0;
+      this.uploadData = entries.map(entry => {
+        if (hour === 24) {
+          hour = 0;
+        }
+        hour++;
+        const period = hour < 13 ? 'AM' : 'PM';
+        const value = entry;
+        return {hour, period, value};
+      });
     } else {
       this.uploadDataInvalid = true;
     }
