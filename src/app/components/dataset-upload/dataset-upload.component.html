@@ -1,7 +1,7 @@
 <section class="dataset-upload" [ngClass]="{'drag-over': dragOver}">
   <div class="container" *ngIf="!uploadData || uploadData.length === 0; else dataBlock">
-    <input class="title-paste" placeholder="Paste your dataset here" (paste)="parseDataset($event)">
-<!--    <p><span class="title-paste">Paste your dataset here</span></p>-->
+    <span *ngIf="validating">Parsing data...</span>
+    <input *ngIf="!validating" class="title-paste" placeholder="Paste your dataset here" (paste)="onPaste($event)">
     <span class="upload-invalid" *ngIf="uploadDataInvalid">Invalid data inserted. Please use only dot separated numbers</span>
     <div class="drop-target">
           <div>OR</div>

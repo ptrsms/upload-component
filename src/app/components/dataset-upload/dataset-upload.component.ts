@@ -1,4 +1,5 @@
 import {Component, EventEmitter, HostListener, OnInit, Output} from '@angular/core';
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'eyes-dataset-upload',
@@ -10,8 +11,8 @@ export class DatasetUploadComponent implements OnInit {
   uploadData: any[];
   dragOver = false;
   uploadDataInvalid = false;
+  validating = false;
 
-  @Output() fileUpload = new EventEmitter<FileList>();
   @Output() dataUpload = new EventEmitter<string>();
 
   @HostListener('dragover', ['$event']) onDragOver(evt) {
@@ -32,39 +33,55 @@ export class DatasetUploadComponent implements OnInit {
     evt.preventDefault();
     evt.stopPropagation();
     this.dragOver = false;
+    this.validating = true;
     const files = evt.dataTransfer.files;
-    if (files && files.length && this.areFilesValid(files)) {
-      // this.fileUpload.emit(files);
+    if (files && files.length) {
+      this.readFiles(files);
     }
   }
 
-  private areFilesValid(files) {
-    const fileReader = new FileReader();
-    fileReader.readAsText(files[0]);
-    const self = this;
-    fileReader.onload = function () {
-      const dataset = fileReader.result;
-      self.parseDataset(dataset);
-    };
+  private readFiles(files) {
+    if (files && files.length) {
+      const fileReader = new FileReader();
+      const self = this;
+      fileReader.onload = function () {
+        const obs  = self.parseDataset(fileReader.result);
+        obs.subscribe(res => {
+          self.validating = false;
+        });
+      };
+      // Only read one file, ignore he rest
+      fileReader.readAsText(files[0]);
+    }
   }
 
   onPaste(event) {
+    this.validating = true;
     // @ts-ignore
     const clipboardData = event.clipboardData || window.clipboardData;
     const dataInput = clipboardData.getData('text');
-    this.parseDataset(dataInput);
+    const obs  = this.parseDataset(dataInput);
+    obs.subscribe(res => {
+      this.validating = false;
+    });
   }
 
   parseDataset(dataInput) {
-
-    this.uploadData = undefined;
-
+    const comp = this;
+    return Observable.create(function (observer) {
+    const regexp = /\d+(?:\.\d*(?:[eE][+-]?\d+)?)?$/;
+      comp.uploadData = undefined;
     const entries = dataInput.split('\n');
-    if (entries.every(entry => !isNaN(parseFloat(entry)))) {
-      this.uploadDataInvalid = false;
-      this.dataUpload.emit(dataInput);
+    // if (entries.every(entry => !isNaN(parseFloat(entry)))) {
+    if (entries.every(entry => {
+        const value = entry.trim();
+        return regexp.test(value);
+      }
+    )) {
+      comp.uploadDataInvalid = false;
+      comp.dataUpload.emit(dataInput);
       let hour = 0;
-      this.uploadData = entries.map(entry => {
+      comp.uploadData = entries.map(entry => {
         if (hour === 24) {
           hour = 0;
         }
@@ -73,11 +90,14 @@ export class DatasetUploadComponent implements OnInit {
         const value = entry;
         return {hour, period, value};
       });
+      observer.next(true);
     } else {
-      this.uploadDataInvalid = true;
+      comp.uploadDataInvalid = true;
+      comp.uploadData = undefined;
+      observer.next(false);
     }
+    });
   }
-
 
   constructor() {
   }
