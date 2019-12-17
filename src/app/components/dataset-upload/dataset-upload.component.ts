@@ -1,4 +1,5 @@
 import {Component, EventEmitter, HostListener, OnInit, Output} from '@angular/core';
+import {DecimalPipe} from '@angular/common';
 import {Observable} from 'rxjs';
 
 @Component({
@@ -45,7 +46,7 @@ export class DatasetUploadComponent implements OnInit {
       const fileReader = new FileReader();
       const self = this;
       fileReader.onload = function () {
-        const obs  = self.parseDataset(fileReader.result);
+        const obs = self.parseDataset(fileReader.result);
         obs.subscribe(res => {
           self.validating = false;
         });
@@ -57,10 +58,11 @@ export class DatasetUploadComponent implements OnInit {
 
   onPaste(event) {
     this.validating = true;
+    this.uploadData = undefined;
     // @ts-ignore
     const clipboardData = event.clipboardData || window.clipboardData;
     const dataInput = clipboardData.getData('text');
-    const obs  = this.parseDataset(dataInput);
+    const obs = this.parseDataset(dataInput);
     obs.subscribe(res => {
       this.validating = false;
     });
@@ -69,37 +71,39 @@ export class DatasetUploadComponent implements OnInit {
   parseDataset(dataInput) {
     const comp = this;
     return Observable.create(function (observer) {
-    const regexp = /\d+(?:\.\d*(?:[eE][+-]?\d+)?)?$/;
       comp.uploadData = undefined;
-    const entries = dataInput.split('\n');
-    // if (entries.every(entry => !isNaN(parseFloat(entry)))) {
-    if (entries.every(entry => {
-        const value = entry.trim();
-        return regexp.test(value);
-      }
-    )) {
-      comp.uploadDataInvalid = false;
-      comp.dataUpload.emit(dataInput);
-      let hour = 0;
-      comp.uploadData = entries.map(entry => {
-        if (hour === 24) {
-          hour = 0;
+      const entries = dataInput.split('\n');
+      if (entries.every(entry => {
+          try {
+            const value = comp.decimalPipe.transform(entry);
+            return true;
+          } catch (error) {
+            return false;
+          }
         }
-        hour++;
-        const period = hour < 13 ? 'AM' : 'PM';
-        const value = entry;
-        return {hour, period, value};
-      });
-      observer.next(true);
-    } else {
-      comp.uploadDataInvalid = true;
-      comp.uploadData = undefined;
-      observer.next(false);
-    }
+      )) {
+        comp.uploadDataInvalid = false;
+        comp.dataUpload.emit(dataInput);
+        let hour = 0;
+        comp.uploadData = entries.map(entry => {
+          if (hour === 24) {
+            hour = 0;
+          }
+          hour++;
+          const period = hour < 13 ? 'AM' : 'PM';
+          const value = entry;
+          return {hour, period, value};
+        });
+        observer.next(true);
+      } else {
+        comp.uploadDataInvalid = true;
+        comp.uploadData = undefined;
+        observer.next(false);
+      }
     });
   }
 
-  constructor() {
+  constructor(private decimalPipe: DecimalPipe) {
   }
 
   ngOnInit() {
