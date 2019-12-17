@@ -3,7 +3,7 @@
     <span *ngIf="validating">Parsing data...</span>
     <input *ngIf="!validating" class="title-paste" placeholder="Paste your dataset here" (paste)="onPaste($event)">
     <!--- TODO add i18n -->
-    <span class="upload-invalid" *ngIf="uploadDataInvalid">Invalid data inserted. Please use only numbers</span>
+    <span class="upload-invalid" *ngIf="uploadDataInvalid">Invalid data inserted. Please upload only numbers.</span>
     <div class="drop-target">
           <div>OR</div>
       <span>drag & drop file</span>

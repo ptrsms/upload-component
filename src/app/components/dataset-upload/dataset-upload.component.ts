@@ -1,6 +1,5 @@
 import {Component, EventEmitter, HostListener, OnInit, Output} from '@angular/core';
 import {DecimalPipe} from '@angular/common';
-import {Observable} from 'rxjs';
 
 @Component({
   selector: 'eyes-dataset-upload',
@@ -34,7 +33,7 @@ export class DatasetUploadComponent implements OnInit {
     evt.preventDefault();
     evt.stopPropagation();
     this.dragOver = false;
-    this.validating = true;
+    this.resetStatus();
     const files = evt.dataTransfer.files;
     if (files && files.length) {
       this.readFiles(files);
@@ -46,10 +45,7 @@ export class DatasetUploadComponent implements OnInit {
       const fileReader = new FileReader();
       const self = this;
       fileReader.onload = function () {
-        const obs = self.parseDataset(fileReader.result);
-        obs.subscribe(res => {
-          self.validating = false;
-        });
+        self.parseDataset(fileReader.result);
       };
       // Only read one file, ignore he rest
       fileReader.readAsText(files[0]);
@@ -57,51 +53,46 @@ export class DatasetUploadComponent implements OnInit {
   }
 
   onPaste(event) {
-    this.validating = true;
-    this.uploadData = undefined;
+    this.resetStatus();
     // @ts-ignore
     const clipboardData = event.clipboardData || window.clipboardData;
     const dataInput = clipboardData.getData('text');
-    const obs = this.parseDataset(dataInput);
-    obs.subscribe(res => {
-      this.validating = false;
-    });
+    this.parseDataset(dataInput);
   }
 
   parseDataset(dataInput) {
-    const comp = this;
-    return Observable.create(function (observer) {
-      comp.uploadData = undefined;
-      const entries = dataInput.split('\n');
-      if (entries.every(entry => {
-          try {
-            const value = comp.decimalPipe.transform(entry);
-            return true;
-          } catch (error) {
-            return false;
-          }
+    const entries = dataInput.split('\n');
+    const uploadData = [];
+    let hourOfDay = 0;
+    if (entries.every(entry => {
+        try {
+          const value = this.decimalPipe.transform(entry);
+          hourOfDay = hourOfDay === 24 ? 1 : hourOfDay + 1;
+          const period = hourOfDay < 13 ? 'AM' : 'PM';
+          const hour = hourOfDay > 12 ? hourOfDay - 12 : hourOfDay;
+          uploadData.push({hour, period, value});
+          return true;
+        } catch (error) {
+          return false;
         }
-      )) {
-        comp.uploadDataInvalid = false;
-        comp.dataUpload.emit(dataInput);
-        let hour = 0;
-        comp.uploadData = entries.map(entry => {
-          if (hour === 24) {
-            hour = 0;
-          }
-          hour++;
-          const period = hour < 13 ? 'AM' : 'PM';
-          const value = entry;
-          return {hour, period, value};
-        });
-        observer.next(true);
-      } else {
-        comp.uploadDataInvalid = true;
-        comp.uploadData = undefined;
-        observer.next(false);
       }
-    });
+    )) {
+      this.uploadDataInvalid = false;
+      this.uploadData = uploadData;
+      this.dataUpload.emit(dataInput);
+    } else {
+      this.validating = false;
+      this.uploadDataInvalid = true;
+      this.uploadData = undefined;
+    }
   }
+
+  private resetStatus() {
+    this.validating = true;
+    this.uploadDataInvalid = false;
+    this.uploadData = undefined;
+  }
+
 
   constructor(private decimalPipe: DecimalPipe) {
   }
